@@ -1,5 +1,5 @@
 # LinuxShell
-Implements a linux shell in C++, almost fully working besides a few implementations
+Implements a linux shell in C++ for my csce 313 class, almost fully working besides a few implementations
 
 # to run:
 - g++ -o shell shell.cpp 
