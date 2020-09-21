@@ -339,8 +339,8 @@ int main (){
         }
         int pid = fork();
         if (pid == 0) { //child process
-        // preparing the input command for execution
-             if (inputline.find("echo") != string::npos) {
+            // preparing the input command for execution
+            if (inputline.find("echo") != string::npos) {
                 bool validCom = false;
                 bool out = false;
                 if (validEcho(inputline)) validCom = true;
@@ -358,11 +358,19 @@ int main (){
                     string necho;
                     char *command;
                     if (inputline.find("-e")!=string::npos) {
-                        if (inputline.find("-e") < inputline.find("\'") || inputline.find("-e") < inputline.find("\"")) {
+                        if (((int)inputline.find("-e") < (int)inputline.find_first_of("\'")) || ((int)inputline.find("-e") < (int)inputline.find_first_of("\""))) {
                             necho = inputline.substr(9);
                             necho = necho.substr(0, necho.size() - 1);
                             command = (char *) necho.c_str();
                             if (execlp("echo", "echo", "-e", command, NULL) < 0) {
+                                perror(reinterpret_cast<const char *>(command[0]));
+                                exit(1);
+                            }
+                        } else {
+                            necho = inputline.substr(6);
+                            necho = necho.substr(0, necho.size() - 1);
+                            command = (char *) necho.c_str();
+                            if(execlp("echo","echo",command,NULL) < 0) {
                                 perror(reinterpret_cast<const char *>(command[0]));
                                 exit(1);
                             }
@@ -394,41 +402,41 @@ int main (){
                     exit(1);
                 }
             } else if (inputline.find("|") != string::npos) {
-                 vector<string> c = split(inputline, '|');
-                 for (int i = 0; i < c.size(); i++) {
-                     int fd[2];
-                     pipe(fd);
-                     int cid = fork();
-                     if (!cid) {
-                         if (i < c.size() - 1) {
-                             dup2(fd[1], 1);
-                         }
-                         execute(c[i]);
-                     } else {
-                         if (i == c.size() - 1) {
-                             waitpid(cid, 0, 0);
-                         }
-                         dup2(fd[0], 0);
-                         close(fd[1]);
-                     }
-                 }
-             } else if (inputline.find("<")!=string::npos && inputline.find("awk")!=string::npos) {
-                 string file = inFileName(inputline);
-                 int comIdx = inputline.find("<") - 1;
-                 string coms = inputline.substr(0,comIdx);
-                 char *filename = (char *) file.c_str();
-                 int fd = open(filename, O_RDONLY | S_IRUSR);
-                 dup2(fd, 0);
-                 char *command = (char *) coms.c_str();
-                 char **comAry = parser(command, true);
-                 if (execvp(comAry[0], comAry) < 0) {
-                     perror(comAry[0]);
-                     exit(1);
-                 } else {
-                     wait(NULL);
-                 }
-                 close(fd);
-             } else if (redirect(inputline) != -1) {
+                vector<string> c = split(inputline, '|');
+                for (int i = 0; i < c.size(); i++) {
+                    int fd[2];
+                    pipe(fd);
+                    int cid = fork();
+                    if (!cid) {
+                        if (i < c.size() - 1) {
+                            dup2(fd[1], 1);
+                        }
+                        execute(c[i]);
+                    } else {
+                        if (i == c.size() - 1) {
+                            waitpid(cid, 0, 0);
+                        }
+                        dup2(fd[0], 0);
+                        close(fd[1]);
+                    }
+                }
+            } else if (inputline.find("<")!=string::npos && inputline.find("awk")!=string::npos) {
+                string file = inFileName(inputline);
+                int comIdx = inputline.find("<") - 1;
+                string coms = inputline.substr(0,comIdx);
+                char *filename = (char *) file.c_str();
+                int fd = open(filename, O_RDONLY | S_IRUSR);
+                dup2(fd, 0);
+                char *command = (char *) coms.c_str();
+                char **comAry = parser(command, true);
+                if (execvp(comAry[0], comAry) < 0) {
+                    perror(comAry[0]);
+                    exit(1);
+                } else {
+                    wait(NULL);
+                }
+                close(fd);
+            } else if (redirect(inputline) != -1) {
                 bool out = false;
                 bool in = false;
                 if (inputline.find(">") != string::npos && inputline.find("<") != string::npos) {
@@ -469,8 +477,8 @@ int main (){
                     char *command = (char *) tempCom.c_str();
                     char **comAry = parser(command, false);
                     if (execvp(comAry[0], comAry) < 0) {
-                            perror(comAry[0]);
-                            exit(1);
+                        perror(comAry[0]);
+                        exit(1);
                     } else {
                         wait(NULL);
                     }
@@ -514,3 +522,4 @@ int main (){
         }
     }
 }
+
