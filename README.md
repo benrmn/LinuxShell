@@ -1,4 +1,4 @@
-# LinuxShell
+# LinuxShell (PA4 csce 313)
 Implements a linux shell in C++ for my csce 313 class, almost fully working besides a few implementations
 
 # to run:
